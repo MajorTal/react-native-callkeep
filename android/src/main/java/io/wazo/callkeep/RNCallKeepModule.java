@@ -221,11 +221,6 @@ public class RNCallKeepModule extends ReactContextBaseJavaModule implements Life
         }
         ComponentName cName = new ComponentName(context, VoiceConnectionService.class);
         String appName = this.getApplicationName(context);
-        //Custom change start
-        if (handle != null && telecomManager != null) {
-            telecomManager.unregisterPhoneAccount(handle);
-        }
-        //Custom change end
 
         handle = new PhoneAccountHandle(cName, appName);
         telecomManager = (TelecomManager) context.getSystemService(Context.TELECOM_SERVICE);
@@ -422,6 +417,15 @@ public class RNCallKeepModule extends ReactContextBaseJavaModule implements Life
         }
 
         this.registerPhoneAccount(context);
+        this.setSettings(options);
+    }
+
+    @ReactMethod
+    public void unRegisterPhoneAccount() {
+        Log.d(TAG, "[RNCallKeepModule] unRegisterPhoneAccount");
+        if (handle != null && telecomManager != null) {
+            telecomManager.unregisterPhoneAccount(handle);
+        }
     }
 
     @ReactMethod
@@ -1155,9 +1159,6 @@ public class RNCallKeepModule extends ReactContextBaseJavaModule implements Life
         PhoneAccount account = builder.build();
 
         telephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
-        //Custom change start
-        telecomManager.unregisterPhoneAccount(handle);
-        //Custom change end
         telecomManager.registerPhoneAccount(account);
     }
 

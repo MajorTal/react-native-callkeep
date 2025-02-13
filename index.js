@@ -107,6 +107,13 @@ class RNCallKeep {
     RNCallKeepModule.registerPhoneAccount(options.android);
   };
 
+  unRegisterPhoneAccount = () => {
+    if (isIOS) {
+      return;
+    }
+    RNCallKeepModule.unRegisterPhoneAccount();
+  };
+
   registerAndroidEvents = () => {
     if (isIOS) {
       return;
