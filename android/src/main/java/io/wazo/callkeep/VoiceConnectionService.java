@@ -191,6 +191,9 @@ public class VoiceConnectionService extends ConnectionService {
 
     @Override
     public Connection onCreateIncomingConnection(PhoneAccountHandle connectionManagerPhoneAccount, ConnectionRequest request) {
+        Log.d(TAG, "[VoiceConnectionService] onCreateIncomingConnection => request=" + request);
+        Log.d(TAG, "[VoiceConnectionService] onCreateIncomingConnection => PhoneAccountHandle=" + connectionManagerPhoneAccount);
+
         final Bundle extra = request.getExtras();
         Uri number = request.getAddress();
         String name = extra.getString(EXTRA_CALLER_NAME);
@@ -203,6 +206,7 @@ public class VoiceConnectionService extends ConnectionService {
             ", isForeground: " + isForeground + ", isReachable:" + isReachable + ", timeout: " + timeout);
 
         Connection incomingCallConnection = createConnection(request);
+        Log.d(TAG, "[VoiceConnectionService] onCreateIncomingConnection => setRinging");
         incomingCallConnection.setRinging();
         incomingCallConnection.setInitialized();
 
@@ -222,6 +226,13 @@ public class VoiceConnectionService extends ConnectionService {
         Bundle extras = request.getExtras();
         String callUUID = extras.getString(EXTRA_CALL_UUID);
 
+        Log.d(TAG, "[VoiceConnectionService] onCreateOutgoingConnection => request=" + request);
+        Log.d(TAG, "[VoiceConnectionService] onCreateOutgoingConnection => phoneAccount=" + connectionManagerPhoneAccount);
+        Log.d(TAG, "[VoiceConnectionService] onCreateOutgoingConnection => callUUID=" + callUUID);
+        Log.d(TAG, "[VoiceConnectionService] onCreateOutgoingConnection => isInitialized=" + isInitialized +
+            ", isReachable=" + isReachable);
+
+
         if(callUUID == null || callUUID == ""){
           callUUID = UUID.randomUUID().toString();
         }
@@ -229,6 +240,7 @@ public class VoiceConnectionService extends ConnectionService {
         Log.d(TAG, "[VoiceConnectionService] onCreateOutgoingConnection, uuid:"  + callUUID);
 
         if (!isInitialized && !isReachable) {
+            Log.d(TAG, "[VoiceConnectionService] onCreateOutgoingConnection => notInitialized and notReachable");
             this.notReachableCallUuid = callUUID;
             this.currentConnectionRequest = request;
             this.checkReachability();
@@ -304,7 +316,7 @@ public class VoiceConnectionService extends ConnectionService {
             Log.w(TAG, "[VoiceConnectionService] Not creating foregroundService because not configured");
             return;
         }
-
+        Log.d(TAG, "[VoiceConnectionService] Creating notification channel and building notification");
         String NOTIFICATION_CHANNEL_ID = foregroundSettings.getString("channelId");
         String channelName = foregroundSettings.getString("channelName");
         NotificationChannel chan = new NotificationChannel(NOTIFICATION_CHANNEL_ID, channelName, NotificationManager.IMPORTANCE_NONE);
@@ -344,6 +356,7 @@ public class VoiceConnectionService extends ConnectionService {
 
         try {
             startForeground(FOREGROUND_SERVICE_TYPE_MICROPHONE, notification);
+            Log.d(TAG, "[VoiceConnectionService] Foreground service started successfully");
         } catch (Exception e) {
             Log.w(TAG, "[VoiceConnectionService] Can't start foreground service : " + e.toString());
         }
@@ -360,6 +373,7 @@ public class VoiceConnectionService extends ConnectionService {
 
         try {
             stopForeground(FOREGROUND_SERVICE_TYPE_MICROPHONE);
+            Log.d(TAG, "[VoiceConnectionService] Foreground service stopped successfully");
         } catch (Exception e) {
             Log.w(TAG, "[VoiceConnectionService] can't stop foreground service :" + e.toString());
         }
@@ -434,11 +448,18 @@ public class VoiceConnectionService extends ConnectionService {
     }
 
     private Connection createConnection(ConnectionRequest request) {
+        Log.d(TAG, "[VoiceConnectionService] createConnection => request=" + request);
         Bundle extras = request.getExtras();
+
+        Log.d(TAG, "[VoiceConnectionService] createConnection => request.getAddress()=" + request.getAddress());
         if (request.getAddress() == null) {
+            Log.e(TAG, "[VoiceConnectionService] createConnection => request.getAddress() is null!");
+
             return null;
         }
         HashMap<String, String> extrasMap = this.bundleToMap(extras);
+        Log.d(TAG, "[VoiceConnectionService] createConnection => extrasMap=" + extrasMap);
+
 
         String callerNumber = request.getAddress().toString();
         Log.d(TAG, "[VoiceConnectionService] createConnection, callerNumber:" + callerNumber);
@@ -456,8 +477,12 @@ public class VoiceConnectionService extends ConnectionService {
         }
 
         VoiceConnection connection = new VoiceConnection(this, extrasMap);
+        Log.d(TAG, "[VoiceConnectionService] createConnection => new VoiceConnection created, ID=" +
+          extras.getString(EXTRA_CALL_UUID));
+
         connection.setConnectionCapabilities(Connection.CAPABILITY_MUTE | Connection.CAPABILITY_SUPPORT_HOLD);
 
+        Log.d(TAG, "[VoiceConnectionService] createConnection => connection.setConnectionCapabilities");
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             Context context = getApplicationContext();
             TelecomManager telecomManager = (TelecomManager) context.getSystemService(context.TELECOM_SERVICE);
@@ -476,6 +501,7 @@ public class VoiceConnectionService extends ConnectionService {
         connection.setInitializing();
         connection.setExtras(extras);
         currentConnections.put(extras.getString(EXTRA_CALL_UUID), connection);
+        Log.d(TAG, "[VoiceConnectionService] createConnection => Connection stored in currentConnections");
 
         // Get other connections for conferencing
         Map<String, VoiceConnection> otherConnections = new HashMap<>();
@@ -484,6 +510,8 @@ public class VoiceConnectionService extends ConnectionService {
                 otherConnections.put(entry.getKey(), entry.getValue());
             }
         }
+        Log.d(TAG, "[VoiceConnectionService] createConnection => otherConnections.size=" + otherConnections.size());
+
         List<Connection> conferenceConnections = new ArrayList<Connection>(otherConnections.values());
         connection.setConferenceableConnections(conferenceConnections);
 
@@ -543,7 +571,7 @@ public class VoiceConnectionService extends ConnectionService {
                 for (Bundle event : delayedEvents) {
                     String action = event.getString("action");
                     HashMap attributeMap = (HashMap) event.getSerializable("attributeMap");
-
+                    Log.d(TAG, "[VoiceConnectionService] startObserving => flushing event: " + action);
                     currentConnectionService.sendCallRequestToActivity(action, attributeMap, false);
                 }
 

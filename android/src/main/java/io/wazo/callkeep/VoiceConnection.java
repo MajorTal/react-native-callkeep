@@ -66,6 +66,8 @@ public class VoiceConnection extends Connection {
         this.handle = handle;
         this.context = context;
 
+        Log.d(TAG, "[VoiceConnection] constructor - handle=" + handle);
+
         String number = handle.get(EXTRA_CALL_NUMBER);
         String name = handle.get(EXTRA_CALLER_NAME);
 
@@ -88,7 +90,18 @@ public class VoiceConnection extends Connection {
 
     @Override
     public void onCallAudioStateChanged(CallAudioState state) {
-        Log.d(TAG, "[VoiceConnection] onCallAudioStateChanged muted :" + (state.isMuted() ? "true" : "false"));
+        // Log.d(TAG, "[VoiceConnection] onCallAudioStateChanged muted :" + (state.isMuted() ? "true" : "false"));
+        
+        Log.d(TAG, "[VoiceConnection] onCallAudioStateChanged => " +
+          "isMuted=" + state.isMuted() +
+          ", route=" + state.getRoute() +
+          ", supportedRouteMask=" + state.getSupportedRouteMask() +
+          ", activeBluetoothDevice=" + state.getActiveBluetoothDevice());
+
+        // Also log current AudioManager mode or mute state (if needed):
+        AudioManager audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+        Log.d(TAG, "[VoiceConnection] AudioManager mode=" + audioManager.getMode() +
+              ", isMicrophoneMute=" + audioManager.isMicrophoneMute());
 
         handle.put("output", CallAudioState.audioRouteToString(state.getRoute()));
         sendCallRequestToActivity(ACTION_DID_CHANGE_AUDIO_ROUTE, handle);
