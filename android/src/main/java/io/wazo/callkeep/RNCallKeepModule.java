@@ -113,7 +113,7 @@ public class RNCallKeepModule extends ReactContextBaseJavaModule implements Life
     private static final String E_ACTIVITY_DOES_NOT_EXIST = "E_ACTIVITY_DOES_NOT_EXIST";
     private static final String REACT_NATIVE_MODULE_NAME = "RNCallKeep";
     private static String[] permissions = {
-        Build.VERSION.SDK_INT < 30 ? Manifest.permission.READ_PHONE_STATE : Manifest.permission.READ_PHONE_NUMBERS,
+        Build.VERSION.SDK_INT < 30 ? Manifest.permission.READ_PHONE_STATE :// Manifest.permission.READ_PHONE_NUMBERS,
         Manifest.permission.CALL_PHONE,
         Manifest.permission.RECORD_AUDIO
     };
@@ -1096,12 +1096,16 @@ public class RNCallKeepModule extends ReactContextBaseJavaModule implements Life
         Intent focusIntent = context.getPackageManager().getLaunchIntentForPackage(packageName).cloneFilter();
         Activity activity = getCurrentReactActivity();
         boolean isOpened = activity != null;
+        
         Log.d(TAG, "[RNCallKeepModule] backToForeground, app isOpened ?" + (isOpened ? "true" : "false"));
+        Log.d(TAG, "[RNCallKeepModule] backToForeground, app isLocked ?" + (isLocked ? "true" : "false"));
 
         if (isOpened) {
+            Log.d(TAG, "[RNCallKeepModule] backToForeground, app isOpened, reorder to front");
             focusIntent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
             activity.startActivity(focusIntent);
         } else {
+            Log.d(TAG, "[RNCallKeepModule] backToForeground, app is not opened, start new task");
             focusIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK +
                     WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED +
                     WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD +
