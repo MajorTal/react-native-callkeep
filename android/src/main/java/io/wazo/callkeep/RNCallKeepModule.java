@@ -52,6 +52,7 @@ import android.telephony.TelephonyManager;
 import android.telephony.TelephonyCallback;
 import android.telephony.PhoneStateListener;
 import android.util.Log;
+import android.app.KeyguardManager;
 
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Dynamic;
@@ -113,7 +114,7 @@ public class RNCallKeepModule extends ReactContextBaseJavaModule implements Life
     private static final String E_ACTIVITY_DOES_NOT_EXIST = "E_ACTIVITY_DOES_NOT_EXIST";
     private static final String REACT_NATIVE_MODULE_NAME = "RNCallKeep";
     private static String[] permissions = {
-        Build.VERSION.SDK_INT < 30 ? Manifest.permission.READ_PHONE_STATE :// Manifest.permission.READ_PHONE_NUMBERS,
+        Build.VERSION.SDK_INT < 30 ? Manifest.permission.READ_PHONE_STATE : Manifest.permission.READ_PHONE_NUMBERS,
         Manifest.permission.CALL_PHONE,
         Manifest.permission.RECORD_AUDIO
     };
@@ -1096,7 +1097,9 @@ public class RNCallKeepModule extends ReactContextBaseJavaModule implements Life
         Intent focusIntent = context.getPackageManager().getLaunchIntentForPackage(packageName).cloneFilter();
         Activity activity = getCurrentReactActivity();
         boolean isOpened = activity != null;
-        
+        KeyguardManager keyguardManager = (KeyguardManager) context.getSystemService(Context.KEYGUARD_SERVICE);
+        boolean isLocked = keyguardManager != null && keyguardManager.isKeyguardLocked();
+
         Log.d(TAG, "[RNCallKeepModule] backToForeground, app isOpened ?" + (isOpened ? "true" : "false"));
         Log.d(TAG, "[RNCallKeepModule] backToForeground, app isLocked ?" + (isLocked ? "true" : "false"));
 
